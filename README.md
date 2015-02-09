@@ -1,4 +1,4 @@
-Building FFMPEG on Windows Phone
+Building FFMPEG for Windows Phone
 
 Prerequisites
 ------------
@@ -16,7 +16,7 @@ Prerequisites
 6) zlib library that is required for png support is already checked-in to the 3rd Party folder. The current version of the library is obtained from Nuget Package Manager: https://www.nuget.org/packages/zlib_wp8/
 
 ~~~
-External dependencies ( c99-to-c89-1.0.3  +  vsyasm-1.3.0-win64 + gas-preprocessor.pl)  used for building the currently checked-in libraries are stored in ffmpeg-dependencies.zip 
+External dependencies ( c99-to-c89-1.0.3  +  vsyasm-1.3.0-win64 + gas-preprocessor.pl ) used for building the currently checked-in libraries are stored in ffmpeg-dependencies.zip 
 ~~~
 
 Building
