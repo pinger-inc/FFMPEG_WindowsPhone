@@ -51,4 +51,15 @@ If the build fails due to duplicate link.exe in msys, need to rename msys versio
 ~~~
 Currently checked-in ffmpeg.2.4.tar is derived from https://github.com/qyljcy/FFmpeg
 ~~~
+
+
+Contributors
+------------
+Derek Rodrigues (derek@pinger.com)
+Santhoshkumar Sunderrajan (santhosh@pinger.com)
+
+
+Disclaimer
+------------
+Please comply to the original FFMPEG license.
  
