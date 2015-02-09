@@ -4,16 +4,6 @@ if [ $? -eq 1 ]; then
 	exit 1
 fi
 
-if [ -d  "ffmpeg.2.4" ]; then
-	echo "ERROR : ffmpeg.2.4 has already been installed."
-	echo "To re-install, you should save any local changes first and then rm -rf ffmpeg.2.4"
-	exit 1
-fi
-
-# Extract ffmpeg winrt project source into ffmpeg.2.4
-echo "Extracting ffmpeg.2.4 ..."
-tar -xf ffmpeg.2.4.tar
-
 # Copy patches into ffmpeg.2.4 directory
 # They'll be removed after the patch has been applied
 echo "Preparing patches ..."
