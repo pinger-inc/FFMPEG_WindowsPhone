@@ -62,5 +62,5 @@ Contributors
 
 Disclaimer
 ------------
-Please comply to the original FFMPEG license.
+Please comply to the original FFMPEG license (https://www.ffmpeg.org/legal.html) for the FFMPEG components.
  
