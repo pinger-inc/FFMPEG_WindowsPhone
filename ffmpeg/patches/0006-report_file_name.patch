@@ -1,0 +1,47 @@
+From d3f94beb9e411076f711705aed5982f2964ef63a Mon Sep 17 00:00:00 2001
+From: derek <derek@pinger.com>
+Date: Thu, 29 Jan 2015 10:26:35 -0800
+Subject: [PATCH] report_file_name
+
+---
+ cmdutils.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/cmdutils.c b/cmdutils.c
+index 834fb36..87ccaf0 100644
+--- a/cmdutils.c
++++ b/cmdutils.c
+@@ -60,7 +60,7 @@
+ #endif
+ 
+ /**
+- * Windows API stubs
++ * @brief Windows API stubs
+  * @todo Move these somewhere appropriate
+  */
+ #ifndef MAX_PATH
+@@ -83,6 +83,12 @@ HMODULE GetModuleHandleA(const char* lpModuleName)
+     return NULL;
+ }
+ 
++/**
++ * @brief Function that returns the file name that should be used for the ffmpeg report
++ * This is a declaration only. Symbol must be implemented.
++ */
++const char* GetReportFileName();
++
+ static int init_report(const char *env);
+ 
+ struct SwsContext *sws_opts;
+@@ -981,7 +987,7 @@ static int init_report(const char *env)
+         return AVERROR(ENOMEM);
+     }
+ 
+-    report_file = fopen(filename.str, "w");
++    report_file = fopen(GetReportFileName(), "w");
+     if (!report_file) {
+         int ret = AVERROR(errno);
+         av_log(NULL, AV_LOG_ERROR, "Failed to open report \"%s\": %s\n",
+-- 
+1.8.4.msysgit.0
+

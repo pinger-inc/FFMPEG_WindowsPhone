@@ -1,0 +1,24 @@
+From fa42403f059fcf21f4cdd22689b666e0636f312a Mon Sep 17 00:00:00 2001
+From: derek <derek@pinger.com>
+Date: Mon, 26 Jan 2015 10:17:43 -0800
+Subject: [PATCH] disable-asm
+
+---
+ build_ffmpeg_msvc.sh | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/build_ffmpeg_msvc.sh b/build_ffmpeg_msvc.sh
+index 2f066f8..cea3df3 100644
+--- a/build_ffmpeg_msvc.sh
++++ b/build_ffmpeg_msvc.sh
+@@ -75,6 +75,7 @@ setup_environment() {
+ 
+ configure() (
+   OPTIONS="
++    --disable-asm                   \
+     --enable-static                 \
+     --disable-shared                \
+     --enable-gpl                    \
+-- 
+1.8.4.msysgit.0
+

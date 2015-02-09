@@ -1,0 +1,54 @@
+From ff01a68ef949e234ce7cff65a902a631be8ec01c Mon Sep 17 00:00:00 2001
+From: derek <derek@pinger.com>
+Date: Fri, 23 Jan 2015 11:15:49 -0800
+Subject: [PATCH] export_libs
+
+---
+ build_ffmpeg_msvc.sh | 8 ++++++++
+ configure            | 4 ++--
+ 2 files changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/build_ffmpeg_msvc.sh b/build_ffmpeg_msvc.sh
+index 71e5756..2f066f8 100644
+--- a/build_ffmpeg_msvc.sh
++++ b/build_ffmpeg_msvc.sh
+@@ -43,6 +43,13 @@ copy_libs() (
+   cp lib*/*.lib $archdir/lib
+ )
+ 
++export_libs() (
++  for file_name in $archdir/lib/*.lib
++  do
++    cp "$file_name" "../build/"
++  done 
++)
++
+ clean() (
+   make distclean > /dev/null 2>&1
+ )
+@@ -138,6 +145,7 @@ fi
+ if ! $clean_build || [ ${CONFIGRETVAL} -eq 0 ]; then
+   build &&
+   copy_libs
++  export_libs
+ fi
+ 
+ cd ..
+diff --git a/configure b/configure
+index 0063168..1a2d92a 100755
+--- a/configure
++++ b/configure
+@@ -2732,8 +2732,8 @@ enable xlib
+ 
+ # build settings
+ SHFLAGS='-shared -Wl,-soname,$$(@F)'
+-LIBPREF="lib"
+-LIBSUF=".a"
++LIBPREF=""
++LIBSUF=".lib"
+ FULLNAME='$(NAME)$(BUILDSUF)'
+ LIBNAME='$(LIBPREF)$(FULLNAME)$(LIBSUF)'
+ SLIBPREF="lib"
+-- 
+1.8.4.msysgit.0
+

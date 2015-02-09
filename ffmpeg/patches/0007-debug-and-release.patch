@@ -1,0 +1,77 @@
+From d006549c357b61710ce70b0c37312035ab4a804f Mon Sep 17 00:00:00 2001
+From: derek <derek@pinger.com>
+Date: Mon, 2 Feb 2015 11:49:15 -0800
+Subject: [PATCH] debug and release binaries
+
+---
+ build_ffmpeg_msvc.sh | 29 ++++++++++++++++++++++-------
+ 1 file changed, 22 insertions(+), 7 deletions(-)
+
+diff --git a/build_ffmpeg_msvc.sh b/build_ffmpeg_msvc.sh
+index 657089f..28bab2b 100644
+--- a/build_ffmpeg_msvc.sh
++++ b/build_ffmpeg_msvc.sh
+@@ -44,9 +44,16 @@ copy_libs() (
+ )
+ 
+ export_libs() (
++  export_dir=""
++  if $enable_debug ; then
++    export_dir="../build/debug"
++  else
++    export_dir="../build/release"
++  fi
++  
+   for file_name in $archdir/lib/*.lib
+   do
+-    cp "$file_name" "../build/"
++    cp "$file_name" "$export_dir"
+   done 
+ )
+ 
+@@ -112,7 +119,6 @@ configure() (
+     --enable-encoder=bmp            \
+     --enable-encoder=mjpeg          \
+     --enable-protocol=file          \
+-    --enable-small                  \
+     --enable-pic                    \
+     --enable-filter=format          \
+     --enable-filter=null            \
+@@ -132,12 +138,21 @@ configure() (
+     --enable-winrtapi               \
+     --enable-network                \
+     --enable-avresample             \
+-    --enable-debug                  \
+     --enable-cross-compile          \
+-    --target-os=win32"
++    --target-os=win32"              
++
++  if $enable_debug ; then
++    OPTIONS+=" \
++              --enable-small"
++    mode_flag='--enable-debug'
++    EXTRA_CFLAGS="-D_WIN32_WINNT=0x0603 -MDd -D_WINAPI_FAMILY=WINAPI_FAMILY_PC_APP"
++  else
++    mode_flag='--disable-debug'
++    EXTRA_CFLAGS="-D_WIN32_WINNT=0x0603 -MD -D_WINAPI_FAMILY=WINAPI_FAMILY_PC_APP"
++  fi
++
++    EXTRA_LDFLAGS="-NODEFAULTLIB:libcmt -winmd -appcontainer"
+ 
+-  EXTRA_CFLAGS="-D_WIN32_WINNT=0x0603 -MDd -D_WINAPI_FAMILY=WINAPI_FAMILY_PC_APP"
+-  EXTRA_LDFLAGS="-NODEFAULTLIB:libcmt -winmd -appcontainer"
+ case "$arch"  in
+     x86)
+         OPTIONS+="
+@@ -153,7 +168,7 @@ case "$arch"  in
+         EXTRA_CFLAGS+=" -D_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE  -D__ARM_PCS_VFP -D_ARM_"
+             ;;
+ esac
+-  sh configure --toolchain=msvc --enable-debug --extra-cflags="${EXTRA_CFLAGS}" --extra-ldflags="${EXTRA_LDFLAGS}" ${OPTIONS}
++  sh configure --toolchain=msvc "${mode_flag}" --extra-cflags="${EXTRA_CFLAGS}" --extra-ldflags="${EXTRA_LDFLAGS}" ${OPTIONS}
+ )
+ 
+ build() (
+-- 
+1.8.4.msysgit.0
+

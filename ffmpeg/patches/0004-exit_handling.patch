@@ -1,0 +1,143 @@
+From 1d152f1d2063b58f18ccaf74c2d24d9ba302681b Mon Sep 17 00:00:00 2001
+From: derek <derek@pinger.com>
+Date: Tue, 27 Jan 2015 11:39:02 -0800
+Subject: [PATCH] exit_handling
+
+---
+ build_ffmpeg_msvc.sh | 59 ++++++++++++++++++++++++++++++++++++++++++++--------
+ cmdutils.c           |  2 +-
+ cmdutils.h           |  2 ++
+ ffmpeg.c             |  4 ++--
+ 4 files changed, 55 insertions(+), 12 deletions(-)
+
+diff --git a/build_ffmpeg_msvc.sh b/build_ffmpeg_msvc.sh
+index cea3df3..657089f 100644
+--- a/build_ffmpeg_msvc.sh
++++ b/build_ffmpeg_msvc.sh
+@@ -73,25 +73,66 @@ setup_environment() {
+   fi
+ }
+ 
++##    --disable-filters               \
++##    --disable-encoders              \
++##    --disable-muxers                \
++##    --disable-demuxers              \
++
+ configure() (
+   OPTIONS="
+     --disable-asm                   \
+-    --enable-static                 \
+     --disable-shared                \
++    --disable-devices               \
++    --disable-protocols             \
++    --disable-network               \
++    --disable-hwaccels              \
++    --disable-programs              \
++    --disable-doc                   \
++    --enable-static                 \
++    --enable-encoder=libx264        \
++    --enable-demuxer=mov            \
++    --enable-decoder=h264           \
++    --enable-parser=h264            \
++    --enable-muxer=h264             \
++    --enable-demuxer=h264           \
++    --enable-encoder=mpeg4          \
++    --enable-muxer=mp4              \
++    --enable-decoder=mjpeg          \
++    --enable-muxer=mjpeg            \
++    --enable-demuxer=mjpeg          \
++    --enable-parser=mjpeg           \
++    --enable-muxer=image2           \
++    --enable-demuxer=image2         \
++    --enable-decoder=png            \
++    --enable-decoder=bmp            \
++    --enable-muxer=gif              \
++    --enable-demuxer=gif            \
++    --enable-demuxer=concat         \
++    --enable-encoder=png            \
++    --enable-encoder=bmp            \
++    --enable-encoder=mjpeg          \
++    --enable-protocol=file          \
++    --enable-small                  \
++    --enable-pic                    \
++    --enable-filter=format          \
++    --enable-filter=null            \
++    --enable-filter=noformat        \
++    --enable-filter=scale           \
++    --enable-filter=copy            \
++    --enable-filter=overlay         \
++    --enable-filter=rotate          \
++    --enable-filter=movie           \
++    --enable-filter=select          \
++    --enable-filter=crop            \
++    --enable-filter=volume          \
++    --enable-filter=vflip           \
++    --enable-filter=hflip           \
+     --enable-gpl                    \
+     --enable-w32threads             \
+     --enable-winrtapi               \
+-    --disable-devices               \
+-    --disable-filters               \
+-    --disable-protocols             \
+     --enable-network                \
+-    --disable-muxers                \
+-    --disable-hwaccels              \
+     --enable-avresample             \
+-    --disable-encoders              \
+-    --disable-programs              \
+     --enable-debug                  \
+-    --disable-doc                   \
+     --enable-cross-compile          \
+     --target-os=win32"
+ 
+diff --git a/cmdutils.c b/cmdutils.c
+index ae7a962..834fb36 100644
+--- a/cmdutils.c
++++ b/cmdutils.c
+@@ -147,7 +147,7 @@ void exit_program(int ret)
+     if (program_exit)
+         program_exit(ret);
+ 
+-    exit(ret);
++    ffmpeg_exit(ret, __FUNCTION__, "");
+ }
+ 
+ double parse_number_or_die(const char *context, const char *numstr, int type,
+diff --git a/cmdutils.h b/cmdutils.h
+index f6ad44c..3f6db99 100644
+--- a/cmdutils.h
++++ b/cmdutils.h
+@@ -51,6 +51,8 @@ extern AVDictionary *swr_opts;
+ extern AVDictionary *format_opts, *codec_opts, *resample_opts;
+ extern int hide_banner;
+ 
++void ffmpeg_exit(int resultCode, const char* pFunctionName, const char* pDescription);
++
+ /**
+  * Register a program-specific cleanup routine.
+  */
+diff --git a/ffmpeg.c b/ffmpeg.c
+index 7eb07b0..0b4ab3e 100644
+--- a/ffmpeg.c
++++ b/ffmpeg.c
+@@ -322,7 +322,7 @@ sigterm_handler(int sig)
+     received_nb_signals++;
+     term_exit_sigsafe();
+     if(received_nb_signals > 3)
+-        exit(123);
++        ffmpeg_exit(123, __FUNCTION__, "");
+ }
+ 
+ void term_init(void)
+@@ -3831,7 +3831,7 @@ static void log_callback_null(void *ptr, int level, const char *fmt, va_list vl)
+  */
+ __declspec(dllexport) void C_ffmpeg_reset()
+ {
+-    // TODO:
++    // TODO: perhaps ffmpeg_cleanup?
+ }
+ 
+ 
+-- 
+1.8.4.msysgit.0
+

@@ -1,0 +1,246 @@
+From d2d603133ab0627aee2c00b3a27e7c89f3a59021 Mon Sep 17 00:00:00 2001
+From: derek <derek@pinger.com>
+Date: Thu, 22 Jan 2015 14:46:27 -0800
+Subject: [PATCH] libffmpeg
+
+---
+ Makefile               |  1 +
+ build_ffmpeg_msvc.sh   |  6 +++---
+ cmdutils.c             | 24 ++++++++++++++++++++++
+ common.mak             |  2 +-
+ ffmpeg.c               | 14 ++++++++++++-
+ ffmpeg_dxva2.c         |  9 +++++++++
+ libffmpeg/Makefile     | 17 ++++++++++++++++
+ libffmpeg/ffmpegres.rc | 55 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ libffmpeg/libffmpeg.v  |  4 ++++
+ 9 files changed, 127 insertions(+), 5 deletions(-)
+ create mode 100644 libffmpeg/Makefile
+ create mode 100644 libffmpeg/ffmpegres.rc
+ create mode 100644 libffmpeg/libffmpeg.v
+
+diff --git a/Makefile b/Makefile
+index 1e1dbb3..4dcaed9 100644
+--- a/Makefile
++++ b/Makefile
+@@ -48,6 +48,7 @@ FFLIBS-$(CONFIG_AVRESAMPLE) += avresample
+ FFLIBS-$(CONFIG_POSTPROC)   += postproc
+ FFLIBS-$(CONFIG_SWRESAMPLE) += swresample
+ FFLIBS-$(CONFIG_SWSCALE)    += swscale
++FFLIBS-$(CONFIG_SWSCALE)    += ffmpeg
+ 
+ FFLIBS := avutil
+ 
+diff --git a/build_ffmpeg_msvc.sh b/build_ffmpeg_msvc.sh
+index 60b404e..71e5756 100644
+--- a/build_ffmpeg_msvc.sh
++++ b/build_ffmpeg_msvc.sh
+@@ -68,8 +68,8 @@ setup_environment() {
+ 
+ configure() (
+   OPTIONS="
+-    --enable-shared                 \
+-    --disable-static                \
++    --enable-static                 \
++    --disable-shared                \
+     --enable-gpl                    \
+     --enable-w32threads             \
+     --enable-winrtapi               \
+@@ -88,7 +88,7 @@ configure() (
+     --target-os=win32"
+ 
+   EXTRA_CFLAGS="-D_WIN32_WINNT=0x0603 -MDd -D_WINAPI_FAMILY=WINAPI_FAMILY_PC_APP"
+-  EXTRA_LDFLAGS="-NODEFAULTLIB:libcmt -winmd -appcontaine"
++  EXTRA_LDFLAGS="-NODEFAULTLIB:libcmt -winmd -appcontainer"
+ case "$arch"  in
+     x86)
+         OPTIONS+="
+diff --git a/cmdutils.c b/cmdutils.c
+index b777396..ae7a962 100644
+--- a/cmdutils.c
++++ b/cmdutils.c
+@@ -59,6 +59,30 @@
+ #include <sys/resource.h>
+ #endif
+ 
++/**
++ * Windows API stubs
++ * @todo Move these somewhere appropriate
++ */
++#ifndef MAX_PATH
++#define MAX_PATH 0x00000104
++#endif
++
++#ifndef HMODULE
++#define HMODULE void*
++#endif
++
++unsigned int GetModuleFileNameA(HMODULE      hModule,
++                                char*        lpFilename,
++                                unsigned int nSize)
++{
++    return 0;
++}
++
++HMODULE GetModuleHandleA(const char* lpModuleName)
++{
++    return NULL;
++}
++
+ static int init_report(const char *env);
+ 
+ struct SwsContext *sws_opts;
+diff --git a/common.mak b/common.mak
+index a493792..df77598 100644
+--- a/common.mak
++++ b/common.mak
+@@ -21,7 +21,7 @@ $(foreach VAR,$(SILENT),$(eval override $(VAR) = @$($(VAR))))
+ $(eval INSTALL = @$(call ECHO,INSTALL,$$(^:$(SRC_DIR)/%=%)); $(INSTALL))
+ endif
+ 
+-ALLFFLIBS = avcodec avdevice avfilter avformat avresample avutil postproc swscale swresample
++ALLFFLIBS = avcodec avdevice avfilter avformat avresample avutil ffmpeg postproc swscale swresample
+ 
+ # NASM requires -I path terminated with /
+ IFLAGS     := -I. -I$(SRC_PATH)/
+diff --git a/ffmpeg.c b/ffmpeg.c
+index 1fd0ece..7eb07b0 100644
+--- a/ffmpeg.c
++++ b/ffmpeg.c
+@@ -3826,7 +3826,19 @@ static void log_callback_null(void *ptr, int level, const char *fmt, va_list vl)
+ {
+ }
+ 
+-int main(int argc, char **argv)
++/**
++ * @brief Reset FFMPEG state
++ */
++__declspec(dllexport) void C_ffmpeg_reset()
++{
++    // TODO:
++}
++
++
++/**
++ * @brief Run FFMPEG using the given arguments
++ */
++__declspec(dllexport) int C_ffmpeg_main(int argc, char** argv)
+ {
+     int ret;
+     int64_t ti;
+diff --git a/ffmpeg_dxva2.c b/ffmpeg_dxva2.c
+index 3c91d26..66f3c98 100644
+--- a/ffmpeg_dxva2.c
++++ b/ffmpeg_dxva2.c
+@@ -40,6 +40,15 @@
+ #include "libavutil/imgutils.h"
+ #include "libavutil/pixfmt.h"
+ 
++/**
++ * Windows API stubs
++ * @todo Move these somewhere appropriate
++ */
++HWND GetShellWindow(void)
++{
++    return NULL;
++}
++
+ /* define all the GUIDs used directly here,
+    to avoid problems with inconsistent dxva2api.h versions in mingw-w64 and different MSVC version */
+ #include <initguid.h>
+diff --git a/libffmpeg/Makefile b/libffmpeg/Makefile
+new file mode 100644
+index 0000000..9c8da8d
+--- /dev/null
++++ b/libffmpeg/Makefile
+@@ -0,0 +1,17 @@
++include $(SUBDIR)../config.mak
++
++NAME = ffmpeg
++FFLIBS = swresample swscale avutil avfilter avformat avcodec avdevice avresample postproc
++
++HEADERS = ../ffmpeg.h              		\
++          ../cmdutils.h              	\
++          ../cmdutils_common_opts.h
++
++OBJS = ../cmdutils.o                   	\
++       ../ffmpeg.o                     	\
++	   ../ffmpeg_opt.o                	\
++	   ../ffmpeg_filter.o              	\
++	   ../ffmpeg_dxva2.o
++
++# Windows resource file
++SLIBOBJS-$(HAVE_GNU_WINDRES) += ffmpegres.o
+diff --git a/libffmpeg/ffmpegres.rc b/libffmpeg/ffmpegres.rc
+new file mode 100644
+index 0000000..e6104ac
+--- /dev/null
++++ b/libffmpeg/ffmpegres.rc
+@@ -0,0 +1,55 @@
++/*
++ * Windows resource file for libpostproc
++ *
++ * Copyright (C) 2012 James Almer
++ * Copyright (C) 2013 Tiancheng "Timothy" Gu
++ *
++ * This file is part of FFmpeg.
++ *
++ * FFmpeg is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * FFmpeg is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with FFmpeg; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
++ */
++
++#include <windows.h>
++#include "libpostproc/version.h"
++#include "libavutil/ffversion.h"
++#include "config.h"
++
++1 VERSIONINFO
++FILEVERSION     LIBPOSTPROC_VERSION_MAJOR, LIBPOSTPROC_VERSION_MINOR, LIBPOSTPROC_VERSION_MICRO, 0
++PRODUCTVERSION  LIBPOSTPROC_VERSION_MAJOR, LIBPOSTPROC_VERSION_MINOR, LIBPOSTPROC_VERSION_MICRO, 0
++FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
++FILEOS          VOS_NT_WINDOWS32
++FILETYPE        VFT_DLL
++{
++    BLOCK "StringFileInfo"
++    {
++        BLOCK "040904B0"
++        {
++            VALUE "CompanyName",      "FFmpeg Project"
++            VALUE "FileDescription",  "FFmpeg postprocessing library"
++            VALUE "FileVersion",      AV_STRINGIFY(LIBPOSTPROC_VERSION)
++            VALUE "InternalName",     "libpostproc"
++            VALUE "LegalCopyright",   "Copyright (C) 2000-" AV_STRINGIFY(CONFIG_THIS_YEAR) " FFmpeg Project"
++            VALUE "OriginalFilename", "postproc" BUILDSUF "-" AV_STRINGIFY(LIBPOSTPROC_VERSION_MAJOR) SLIBSUF
++            VALUE "ProductName",      "FFmpeg"
++            VALUE "ProductVersion",   FFMPEG_VERSION
++        }
++    }
++
++    BLOCK "VarFileInfo"
++    {
++        VALUE "Translation", 0x0409, 0x04B0
++    }
++}
+diff --git a/libffmpeg/libffmpeg.v b/libffmpeg/libffmpeg.v
+new file mode 100644
+index 0000000..e65d76f
+--- /dev/null
++++ b/libffmpeg/libffmpeg.v
+@@ -0,0 +1,4 @@
++LIBPOSTPROC_$MAJOR {
++        global: postproc_*; pp_*;
++        local: *;
++};
+-- 
+1.8.4.msysgit.0
+

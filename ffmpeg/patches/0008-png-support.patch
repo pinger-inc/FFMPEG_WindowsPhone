@@ -1,0 +1,53 @@
+From 868fda1c3e0bab81cd139dd90f1de5cb8802f102 Mon Sep 17 00:00:00 2001
+From: derek <derek@pinger.com>
+Date: Fri, 6 Feb 2015 09:09:34 -0800
+Subject: [PATCH] png support
+
+---
+ build_ffmpeg_msvc.sh | 16 +++++-----------
+ 1 file changed, 5 insertions(+), 11 deletions(-)
+
+diff --git a/build_ffmpeg_msvc.sh b/build_ffmpeg_msvc.sh
+index 28bab2b..e4fef98 100644
+--- a/build_ffmpeg_msvc.sh
++++ b/build_ffmpeg_msvc.sh
+@@ -80,11 +80,6 @@ setup_environment() {
+   fi
+ }
+ 
+-##    --disable-filters               \
+-##    --disable-encoders              \
+-##    --disable-muxers                \
+-##    --disable-demuxers              \
+-
+ configure() (
+   OPTIONS="
+     --disable-asm                   \
+@@ -145,14 +140,14 @@ configure() (
+     OPTIONS+=" \
+               --enable-small"
+     mode_flag='--enable-debug'
+-    EXTRA_CFLAGS="-D_WIN32_WINNT=0x0603 -MDd -D_WINAPI_FAMILY=WINAPI_FAMILY_PC_APP"
++    EXTRA_CFLAGS="-D_WIN32_WINNT=0x0603 -MDd -D_WINAPI_FAMILY=WINAPI_FAMILY_PC_APP -I../../zlib/include/"
++    EXTRA_LDFLAGS="-NODEFAULTLIB:libcmt -winmd -appcontainer -LIBPATH:../../zlib/lib/ARM/v110/Debug"
+   else
+     mode_flag='--disable-debug'
+-    EXTRA_CFLAGS="-D_WIN32_WINNT=0x0603 -MD -D_WINAPI_FAMILY=WINAPI_FAMILY_PC_APP"
++    EXTRA_CFLAGS="-D_WIN32_WINNT=0x0603 -MD -D_WINAPI_FAMILY=WINAPI_FAMILY_PC_APP -I../../zlib/include/"
++    EXTRA_LDFLAGS="-NODEFAULTLIB:libcmt -winmd -appcontainer -LIBPATH:../../zlib/lib/ARM/v110/Release/"
+   fi
+-
+-    EXTRA_LDFLAGS="-NODEFAULTLIB:libcmt -winmd -appcontainer"
+-
++    
+ case "$arch"  in
+     x86)
+         OPTIONS+="
+@@ -206,4 +201,3 @@ if ! $clean_build || [ ${CONFIGRETVAL} -eq 0 ]; then
+ fi
+ 
+ cd ..
+-
+-- 
+1.8.4.msysgit.0
+

@@ -1,0 +1,208 @@
+From 1f0812eb869825f95e80884f4bf12caddf27228a Mon Sep 17 00:00:00 2001
+From: derek <derek@pinger.com>
+Date: Wed, 28 Jan 2015 11:23:13 -0800
+Subject: [PATCH] ffmpeg_reset
+
+---
+ ffmpeg.c | 148 +++++++++++++++++++++++++++++++++++++--------------------------
+ 1 file changed, 88 insertions(+), 60 deletions(-)
+
+diff --git a/ffmpeg.c b/ffmpeg.c
+index 0b4ab3e..d04f6ab 100644
+--- a/ffmpeg.c
++++ b/ffmpeg.c
+@@ -433,88 +433,102 @@ static void ffmpeg_cleanup(int ret)
+         printf("bench: maxrss=%ikB\n", maxrss);
+     }
+ 
+-    for (i = 0; i < nb_filtergraphs; i++) {
+-        FilterGraph *fg = filtergraphs[i];
+-        avfilter_graph_free(&fg->graph);
+-        for (j = 0; j < fg->nb_inputs; j++) {
+-            av_freep(&fg->inputs[j]->name);
+-            av_freep(&fg->inputs[j]);
+-        }
+-        av_freep(&fg->inputs);
+-        for (j = 0; j < fg->nb_outputs; j++) {
+-            av_freep(&fg->outputs[j]->name);
+-            av_freep(&fg->outputs[j]);
+-        }
+-        av_freep(&fg->outputs);
+-        av_freep(&fg->graph_desc);
++    if (filtergraphs) {
++        for (i = 0; i < nb_filtergraphs; i++) {
++            FilterGraph *fg = filtergraphs[i];
++            avfilter_graph_free(&fg->graph);
++            for (j = 0; j < fg->nb_inputs; j++) {
++                av_freep(&fg->inputs[j]->name);
++                av_freep(&fg->inputs[j]);
++            }
++            av_freep(&fg->inputs);
++            for (j = 0; j < fg->nb_outputs; j++) {
++                av_freep(&fg->outputs[j]->name);
++                av_freep(&fg->outputs[j]);
++            }
++            av_freep(&fg->outputs);
++            av_freep(&fg->graph_desc);
+ 
+-        av_freep(&filtergraphs[i]);
++            av_freep(&filtergraphs[i]);
++        }
++        av_freep(&filtergraphs);
+     }
+-    av_freep(&filtergraphs);
+ 
+-    av_freep(&subtitle_out);
++    if (subtitle_out) {
++        av_freep(&subtitle_out);
++    }
+ 
+-    /* close files */
+-    for (i = 0; i < nb_output_files; i++) {
+-        OutputFile *of = output_files[i];
+-        AVFormatContext *s = of->ctx;
+-        if (s && s->oformat && !(s->oformat->flags & AVFMT_NOFILE) && s->pb)
+-            avio_close(s->pb);
+-        avformat_free_context(s);
+-        av_dict_free(&of->opts);
++    if (output_files) {
++        /* close files */
++        for (i = 0; i < nb_output_files; i++) {
++            OutputFile *of = output_files[i];
++            AVFormatContext *s = of->ctx;
++            if (s && s->oformat && !(s->oformat->flags & AVFMT_NOFILE) && s->pb)
++                avio_close(s->pb);
++            avformat_free_context(s);
++            av_dict_free(&of->opts);
+ 
+-        av_freep(&output_files[i]);
+-    }
+-    for (i = 0; i < nb_output_streams; i++) {
+-        OutputStream *ost = output_streams[i];
+-        AVBitStreamFilterContext *bsfc = ost->bitstream_filters;
+-        while (bsfc) {
+-            AVBitStreamFilterContext *next = bsfc->next;
+-            av_bitstream_filter_close(bsfc);
+-            bsfc = next;
++            av_freep(&output_files[i]);
+         }
+-        ost->bitstream_filters = NULL;
+-        av_frame_free(&ost->filtered_frame);
++    }
++
++    if (output_streams) {
++        for (i = 0; i < nb_output_streams; i++) {
++            OutputStream *ost = output_streams[i];
++            AVBitStreamFilterContext *bsfc = ost->bitstream_filters;
++            while (bsfc) {
++                AVBitStreamFilterContext *next = bsfc->next;
++                av_bitstream_filter_close(bsfc);
++                bsfc = next;
++            }
++            ost->bitstream_filters = NULL;
++            av_frame_free(&ost->filtered_frame);
+ 
+-        av_parser_close(ost->parser);
++            av_parser_close(ost->parser);
+ 
+-        av_freep(&ost->forced_keyframes);
+-        av_expr_free(ost->forced_keyframes_pexpr);
+-        av_freep(&ost->avfilter);
+-        av_freep(&ost->logfile_prefix);
++            av_freep(&ost->forced_keyframes);
++            av_expr_free(ost->forced_keyframes_pexpr);
++            av_freep(&ost->avfilter);
++            av_freep(&ost->logfile_prefix);
+ 
+-        av_freep(&ost->audio_channels_map);
+-        ost->audio_channels_mapped = 0;
++            av_freep(&ost->audio_channels_map);
++            ost->audio_channels_mapped = 0;
+ 
+-        avcodec_free_context(&ost->enc_ctx);
++            avcodec_free_context(&ost->enc_ctx);
+ 
+-        av_freep(&output_streams[i]);
++            av_freep(&output_streams[i]);
++        }
+     }
+ #if HAVE_PTHREADS
+     free_input_threads();
+ #endif
+-    for (i = 0; i < nb_input_files; i++) {
+-        avformat_close_input(&input_files[i]->ctx);
+-        av_freep(&input_files[i]);
++    if (input_files) {
++        for (i = 0; i < nb_input_files; i++) {
++            avformat_close_input(&input_files[i]->ctx);
++            av_freep(&input_files[i]);
++        }
+     }
+-    for (i = 0; i < nb_input_streams; i++) {
+-        InputStream *ist = input_streams[i];
++    if (input_streams) {
++        for (i = 0; i < nb_input_streams; i++) {
++            InputStream *ist = input_streams[i];
+ 
+-        av_frame_free(&ist->decoded_frame);
+-        av_frame_free(&ist->filter_frame);
+-        av_dict_free(&ist->decoder_opts);
+-        avsubtitle_free(&ist->prev_sub.subtitle);
+-        av_frame_free(&ist->sub2video.frame);
+-        av_freep(&ist->filters);
+-        av_freep(&ist->hwaccel_device);
++            av_frame_free(&ist->decoded_frame);
++            av_frame_free(&ist->filter_frame);
++            av_dict_free(&ist->decoder_opts);
++            avsubtitle_free(&ist->prev_sub.subtitle);
++            av_frame_free(&ist->sub2video.frame);
++            av_freep(&ist->filters);
++            av_freep(&ist->hwaccel_device);
+ 
+-        avcodec_free_context(&ist->dec_ctx);
++            avcodec_free_context(&ist->dec_ctx);
+ 
+-        av_freep(&input_streams[i]);
++            av_freep(&input_streams[i]);
++        }
+     }
+ 
+     if (vstats_file)
+         fclose(vstats_file);
++
+     av_free(vstats_filename);
+ 
+     av_freep(&input_streams);
+@@ -533,6 +547,20 @@ static void ffmpeg_cleanup(int ret)
+         av_log(NULL, AV_LOG_INFO, "Conversion failed!\n");
+     }
+     term_exit();
++
++    filtergraphs        = NULL;
++    nb_filtergraphs     = 0;
++    subtitle_out        = NULL;
++    output_files        = NULL;
++    nb_output_files     = 0;
++    output_streams      = NULL;
++    nb_output_streams   = 0;
++    input_files         = NULL;
++    nb_input_files      = 0;
++    input_streams       = NULL;
++    nb_input_streams    = 0;
++    vstats_file         = NULL;
++    vstats_filename     = NULL;
+ }
+ 
+ void remove_avoptions(AVDictionary **a, AVDictionary *b)
+@@ -3831,7 +3859,7 @@ static void log_callback_null(void *ptr, int level, const char *fmt, va_list vl)
+  */
+ __declspec(dllexport) void C_ffmpeg_reset()
+ {
+-    // TODO: perhaps ffmpeg_cleanup?
++    ffmpeg_cleanup(0);
+ }
+ 
+ 
+-- 
+1.8.4.msysgit.0
+

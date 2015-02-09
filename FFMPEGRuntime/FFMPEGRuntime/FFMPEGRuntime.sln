@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FFMPEGRuntime", "FFMPEGRuntime.vcxproj", "{3FA08C54-2E1C-475E-9D16-4D9893CEE30D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM = Debug|ARM
+		Debug|Win32 = Debug|Win32
+		Release|ARM = Release|ARM
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3FA08C54-2E1C-475E-9D16-4D9893CEE30D}.Debug|ARM.ActiveCfg = Debug|ARM
+		{3FA08C54-2E1C-475E-9D16-4D9893CEE30D}.Debug|ARM.Build.0 = Debug|ARM
+		{3FA08C54-2E1C-475E-9D16-4D9893CEE30D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3FA08C54-2E1C-475E-9D16-4D9893CEE30D}.Debug|Win32.Build.0 = Debug|Win32
+		{3FA08C54-2E1C-475E-9D16-4D9893CEE30D}.Release|ARM.ActiveCfg = Release|ARM
+		{3FA08C54-2E1C-475E-9D16-4D9893CEE30D}.Release|ARM.Build.0 = Release|ARM
+		{3FA08C54-2E1C-475E-9D16-4D9893CEE30D}.Release|Win32.ActiveCfg = Release|Win32
+		{3FA08C54-2E1C-475E-9D16-4D9893CEE30D}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
