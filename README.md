@@ -55,9 +55,9 @@ Currently checked-in ffmpeg.2.4.tar is derived from https://github.com/qyljcy/FF
 
 Contributors
 ------------
-Derek Rodrigues (derek@pinger.com)
+[Derek Rodrigues] (https://github.com/DerekARodrigues)
 
-Santhoshkumar Sunderrajan (santhosh@pinger.com)
+[Santhoshkumar Sunderrajan] (https://github.com/santhosh-kumar)
 
 
 Disclaimer
