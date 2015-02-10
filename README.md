@@ -1,4 +1,18 @@
-Building FFMPEG for Windows Phone
+#FFMPEG for Windows Phone
+
+FFMPEG_WindowsPhone consists of:
+* FFmpeg v2.4 for Windows Phone 8.0+
+* A .NET Windows Runtime Component that exposes FFmpeg as an API for use by Windows Phone applications
+
+To get started right away with the .NET Windows Runtime Component, simply:
+
+1) Add FFMPEGRuntime as a reference in your Windows Phone project.
+
+2) Create an instance of FFMPEGRuntime.
+
+3) Invoke the Run() method, passing whatever command-line arguments you'd like (see the [FFmpeg documentation] (https://ffmpeg.org/ffmpeg.html) for more details). The FFMPEGDemo application provides an example usage.
+
+For convenience, this repo includes all native library dependencies including the debug and release binaries of FFmpeg (built for Windows Phone ARM). However, if you'd prefer, you can build the FFmpeg native libraries yourself by following the instructions below.
 
 Prerequisites
 ------------
@@ -60,9 +74,9 @@ Contributors
 [Santhoshkumar Sunderrajan] (https://github.com/santhosh-kumar)
 
 
-Disclaimer
+Licensing
 ------------
-Please comply to the original FFMPEG license (https://www.ffmpeg.org/legal.html) for the FFMPEG components.
+FFMPEG_WindowsPhone is licensed under LGPL 2.1+.
 
-Like FFmpeg itself, this library is LGPL 2.1+.
+Please comply with the original FFmpeg license (https://www.ffmpeg.org/legal.html) for the FFmpeg components.
  
